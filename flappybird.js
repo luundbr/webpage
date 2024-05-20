@@ -1,7 +1,105 @@
+function createDQNModel() {
+    const model = tf.sequential();
+  
+    model.add(tf.layers.dense({inputShape: [4], units: 24, activation: 'relu'}));
+    model.add(tf.layers.dense({units: 24, activation: 'relu'}));
+    model.add(tf.layers.dense({units: 2, activation: 'linear'}));
+  
+    model.compile({optimizer: 'adam', loss: 'meanSquaredError'});
+  
+    return model;
+}
+  
+function sample(array, size) {
+    const shuffled = array.slice(0);
+    let i = array.length;
+    const min = i - size;
+    let temp, index;
+
+    while (i-- > min) {
+        index = Math.floor((i + 1) * Math.random());
+        temp = shuffled[index];
+        shuffled[index] = shuffled[i];
+        shuffled[i] = temp;
+    }
+
+    return shuffled.slice(min);
+}
+
+async function trainAndPlay() {
+    const numEpisodes = 1000;
+    const gamma = 0.95; // discount factor
+    let epsilon = 1.0; // exploration rate
+    const epsilonDecay = 0.995;
+    const epsilonMin = 0.01;
+    const batchSize = 32;
+    const replayBuffer = [];
+
+    for (let episode = 0; episode < numEpisodes; episode++) {
+        restartGame();
+        let state = getState();
+        let done = false;
+        let totalReward = 0;
+
+        while (!done) {
+            let action;
+            if (Math.random() < epsilon) {
+                action = Math.floor(Math.random() * 2); // random action
+            } else {
+                const qValues = model.predict(tf.tensor2d([state])).dataSync();
+                action = qValues.indexOf(Math.max(...qValues));
+            }
+
+            console.log('STATE BEFORE', state)
+            const nextState = update(action);
+            const reward = getReward();
+            console.log('STATE AFTER UPD', state)
+            // action, reward, nextState
+            replayBuffer.push({ state, action, reward, nextState, done: false }); // TODO
+
+            if (replayBuffer.length > 10000) {
+                replayBuffer.shift();
+            }
+
+            state = nextState;
+            totalReward += reward;
+            // game.render();
+
+            if (replayBuffer.length > batchSize) {
+                console.log('REPLAY BUFFER', replayBuffer)
+                const batch = sample(replayBuffer, batchSize);
+                const states = batch.map(exp => exp.state);
+                const actions = batch.map(exp => exp.action);
+                const rewards = batch.map(exp => exp.reward);
+                const nextStates = batch.map(exp => exp.nextState);
+                const dones = batch.map(exp => exp.done);
+
+                console.log('NEXT STATES', nextStates)
+                const qNext = model.predict(tf.tensor2d(nextStates)).arraySync();
+                const qTarget = model.predict(tf.tensor2d(states)).arraySync();
+
+                for (let i = 0; i < batchSize; i++) {
+                    qTarget[i][actions[i]] = rewards[i] + (dones[i] ? 0 : gamma * Math.max(...qNext[i]));
+                }
+
+                await model.fit(tf.tensor2d(states), tf.tensor2d(qTarget), {epochs: 1});
+            }
+
+            if (false) {
+                done = true;
+            }
+        }
+
+        epsilon = Math.max(epsilonMin, epsilon * epsilonDecay);
+        console.log(`Episode: ${episode}, Total Reward: ${totalReward}`);
+    }
+}
+
+// game
 const scene = {
     preload: preload,
     create: _ => null,
-    update: update
+    update: _ => null
 }
 
 const gameConfig = {
@@ -35,7 +133,9 @@ const game = new Phaser.Game(gameConfig);
 
 let ctx;
 
-let texturesLoaded = 0
+let texturesLoaded = 0;
+
+const model = createDQNModel();
 
 function preload() {
     if (!ctx) {
@@ -56,6 +156,7 @@ function preload() {
             texturesLoaded++;
             if (texturesLoaded === 3) {
                 create.call(this);
+                trainAndPlay();
             }
         })
     } else {
@@ -133,6 +234,27 @@ function create() {
     this.resetButton.setVisible(false);
 }
 
+function getState() {
+    const pc = pipes.getChildren()
+    const pipeCoords = []
+
+    for (const p of pc) {
+        pipeCoords.push(p.x)
+        pipeCoords.push(p.y)
+    }
+
+    if (!pipeCoords.length) {
+        pipeCoords.push(0)
+        pipeCoords.push(0)
+    }
+
+    return [player.y, player.body.velocity.y, ...pipeCoords] // does it need to be a static length?
+}
+
+function getReward() {
+    return this.done ? -1 : 0.1;
+}
+
 function gameOver() {
     ctx.physics.pause();
     ctx.gameOverText.setVisible(true);
@@ -197,6 +319,5 @@ function update() {
 }
 
 function hitPipe(player, _) {
-  gameOver();
+    gameOver();
 }
-
