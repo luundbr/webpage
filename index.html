@@ -5,81 +5,7 @@
     font-family: Verdana, Geneva, Tahoma, sans-serif;
   }
 
-  .maintext {
-    margin-top: 150px;
-    font-size: 27;
-    left: 0;
-  }
-
-  .tooltip {
-    position: absolute;
-    z-index: 1;
-    visibility: hidden;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 28px;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-  }
-
-  .service:hover .tooltip {
-    visibility: visible;
-  }
-
   .ghicon {
-    margin-top: 750px;
-    margin-left: 50%;
-  }
-
-  .service {
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    padding: 10px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-  }
-
-  .spaced-service {
-    margin-right: 20px;
-  }
-
-  .staggered-service {
-    margin-left: 200px;
-  }
-
-  .nameplate {
-    margin-top: 20px;
-    margin-left: 20px;
-    position: relative;
-    top: 0;
-  }
-
-  .services {
-    margin-top: 150px;
-    margin-left: 0px;
-    justify-content: left;
-    position: relative;
-    font-size: 30px;
-  }
-
-  .name {
-    font-size: 70px;
-  }
-
-  .title {
-    font-size: 50px;
-    margin-top: +25px;
-    margin-left: -80px;
-  }
-
-  .flair {
-    font-size: 30px;
-    margin-left: 350px;
   }
 
   body {
@@ -99,65 +25,11 @@
     .tooltip {
       font-size: 16;
     }
-
-    .nameplate {
-      margin-top: 10px;
-      margin-left: 10px;
-    }
-
-    .services {
-      margin-top: 20px;
-      font-size: 16px;
-    }
-
-    .name {
-      font-size: 30px;
-    }
-
-    .title {
-      font-size: 25px;
-    }
-
-    .flair {
-      font-size: 20px;
-    }
-  }
-
-  @media screen and (min-width: 2560px) {
-    .maintext {
-      font-size: 38;
-    }
-
-    .nameplate {
-      margin-top: 100px;
-      margin-left: 150px;
-    }
-
-    .services {
-      margin-top: 120px;
-      margin-left: 100px;
-      font-size: 50px;
-    }
-
-    .name {
-      font-size: 120px;
-    }
-
-    .title {
-      font-size: 85px;
-    }
-
-    .flair {
-      font-size: 65px;
-      margin-left: 400px;
-    }
   }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-<script src="dqn.js"></script>
-<script src="flappybird.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
 
 <script>
 
@@ -165,11 +37,7 @@
 
 <body>
 
-  <div class="nameplate">
-    <a href="https://github.com/luundbr">
-      <img class="ghicon" width="50" height="50" src="ghicon.png" alt="Description of the image">
-    </a>
-
+  <div>
     <style>
       canvas {
         display: block;
@@ -177,6 +45,18 @@
         margin: 20px auto;
       }
     </style>
+    
+    <a href="https://github.com/luundbr">
+      <img class="ghicon" width="50" height="50" src="ghicon.png" alt="Description of the image">
+    </a>
+
+    <video id="webcam" style="margin-top: 500;" autoplay playsinline width="640" height="480"></video>
+    <canvas id="overlay" width="640" height="480"></canvas>
+    <script src="webcam.js"></script>
+
+    <canvas id="flappyBirdCanvas" width="800" height="600"></canvas>
+
+    <script src="flappybird.js"></script>
 
   </div>
 
