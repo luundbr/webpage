@@ -135,6 +135,7 @@ async function trainAndPlay() {
                 const rewards = batch.map(exp => exp.reward);
                 const nextStates = batch.map(exp => exp.nextState);
                 const dones = batch.map(exp => exp.done);
+                console.log(nextStates)
                 const qNext = model.predict(tf.tensor2d(nextStates)).arraySync();
                 const qTarget = model.predict(tf.tensor2d(states)).arraySync();
 
